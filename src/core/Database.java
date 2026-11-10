@@ -6,6 +6,7 @@ import java.util.Map;
 
 // управление таблицами
 public class Database implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Map<String, Table> tables;
 
     public Database(){

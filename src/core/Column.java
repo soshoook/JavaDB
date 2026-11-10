@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 // один столбец таблицы
 public class Column implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String name;
     private DataType type;
     private boolean primaryKey;

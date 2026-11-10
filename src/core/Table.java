@@ -7,6 +7,7 @@ import java.util.List;
 
 // управление одной таблицей
 public class Table implements Serializable {
+    private static final long serialVersionUID = 1L;
     private String name;
     private List<Column> columns;
     private List<Row> rows;
