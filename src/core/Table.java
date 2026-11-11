@@ -13,11 +13,13 @@ public class Table implements Serializable {
     private String name;
     private List<Column> columns;
     private List<Row> rows;
+    private List<ForeignKey> foreignKeys;
 
     public Table(String name){
         this.name = name;
         this.columns = new ArrayList<>();
         this.rows = new ArrayList<>();
+        this.foreignKeys = new ArrayList<>();
     }
 
     public String getName(){
@@ -32,8 +34,16 @@ public class Table implements Serializable {
         return rows;
     }
 
+    public List<ForeignKey> getForeignKeys(){
+        return foreignKeys;
+    }
+
     public void addColumn(Column column){
         columns.add(column);
+    }
+
+    public void addForeignKey(ForeignKey foreign_key){
+        foreignKeys.add(foreign_key);
     }
 
     public void isCorrectType(Column column, Object value){
