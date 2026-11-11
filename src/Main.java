@@ -1,20 +1,31 @@
 import core.*;
+import storage.StorageManager;
 
 import java.io.IOException;
 import java.time.LocalDate;
+import java.io.File;
 
 public class Main {
 
-    public static void main(String[] args) throws IOException {
-        Database database = new Database();
+    public static void main(String[] args) throws IOException, ClassNotFoundException {
+        File file = new File("database.dat");
+        Database database;
+        if (file.exists()){
+            database = StorageManager.load("database.dat");
+            System.out.println("Database was loaded!");
+        }
+        else {
+            database = new Database();
+            System.out.println("Database was created!");
+        }
 
         // клубы
         Table clubs = new Table("clubs");
         clubs.addColumn(new Column("id", DataType.INTEGER, true));
         clubs.addColumn(new Column("name", DataType.STRING, false));
         clubs.addColumn(new Column("budget", DataType.DOUBLE, false));
-        clubs.addColumn(new Column("creation date", DataType.DATE, false));
-        clubs.addColumn(new Column("active (1 - yes, 0 - no)", DataType.BOOLEAN, false));
+        clubs.addColumn(new Column("created_at", DataType.DATE, false));
+        clubs.addColumn(new Column("active", DataType.BOOLEAN, false));
 
         Row club1 = new Row();
         club1.setValue("id", 1);
@@ -36,11 +47,11 @@ public class Main {
         // мероприятия
         Table events = new Table("events");
         events.addColumn(new Column("id", DataType.INTEGER, true));
-        events.addColumn(new Column("department id", DataType.INTEGER, false));
+        events.addColumn(new Column("department_id", DataType.INTEGER, false));
         events.addColumn(new Column("name", DataType.STRING, false));
-        events.addColumn(new Column("ticket price", DataType.DOUBLE, false));
-        events.addColumn(new Column("event date", DataType.DATE, false));
-        events.addColumn(new Column("active (1 - yes, 0 - no)", DataType.BOOLEAN, false));
+        events.addColumn(new Column("ticket_price", DataType.DOUBLE, false));
+        events.addColumn(new Column("event_date", DataType.DATE, false));
+        events.addColumn(new Column("active", DataType.BOOLEAN, false));
 
         Row event1 = new Row();
         event1.setValue("id", 1);
@@ -60,6 +71,8 @@ public class Main {
         event3.setValue("active", true);
         events.addRow(event3);
         database.addTable(events);
+
+        StorageManager.save(database, file.getPath());
 
         // итоговая таблица
         Table res = database.getTable("clubs");
