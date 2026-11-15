@@ -2,6 +2,7 @@ package core;
 
 import java.io.Serializable;
 
+// описание внешнего ключа, который связывет столбец одной таблицы со столбцом другой
 public class ForeignKey implements Serializable {
     private static final long serialVersionUID = 1L;
     private String columnName;

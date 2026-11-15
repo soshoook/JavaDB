@@ -5,9 +5,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-// управление таблицами
+// база данных и управление её таблицами
+// добавление, получение, удаление таблиц, проверка их существования 
+// контроль целостности связей между таблицами с помощью внешних ключей
 public class Database implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 3L;
     private Map<String, Table> tables;
 
     public Database(){
@@ -18,6 +20,30 @@ public class Database implements Serializable {
         tables.put(table.getName(), table);
     }
 
+    public void dropTable(String name){
+        if (!tables.containsKey(name))
+            throw new IllegalArgumentException("Table does not exist: " + name);
+
+        String referencing = findReferencingTable(name);
+        if (referencing != null)
+            throw new IllegalArgumentException(
+                "Cannot drop table " + name + ": it is referenced by table " + referencing);
+
+        tables.remove(name);
+    }
+
+    public String findReferencingTable(String tableName){
+        for (Table other : tables.values()){
+            if (other.getName().equals(tableName))
+                continue;
+            for (ForeignKey foreignKey : other.getForeignKeys()){
+                if (foreignKey.getRefTable().equals(tableName))
+                    return other.getName();
+            }
+        }
+        return null;
+    }
+
     public void addRow(String tableName, Row row){
         Table table = getTable(tableName);
         if (table == null)
@@ -26,7 +52,6 @@ public class Database implements Serializable {
         if (!isForeignKeyValid(table, row))
             throw new IllegalArgumentException("Foreign key does not exists");
         table.addRow(row);
-        
     }
 
     public Table getTable(String name){

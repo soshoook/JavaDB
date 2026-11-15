@@ -2,7 +2,8 @@ package core;
 
 import java.io.Serializable;
 
-// один столбец таблицы
+// описывает один столбец таблицы бд
+// хранит название столбца, его тип данных и признак первичного ключа
 public class Column implements Serializable {
     private static final long serialVersionUID = 1L;
     private String name;

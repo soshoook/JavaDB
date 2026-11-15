@@ -7,6 +7,7 @@ import java.io.ObjectOutputStream;
 
 import core.Database;
 
+// сохранение бд в файл и загрузки бд из файла
 public class StorageManager {
  
     public static void save(Database database, String file) throws IOException{

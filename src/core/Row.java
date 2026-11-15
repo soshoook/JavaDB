@@ -4,6 +4,8 @@ import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
 
+//одна запись (строка) таблицы
+// хранит значения столбцов в формате "название ст - значение"
 public class Row implements Serializable {
     private static final long serialVersionUID = 1L;
     private Map<String, Object> values;

@@ -1,5 +1,6 @@
 package sql;
 
+// представялет условие WHERE
 public class Condition {
     private String column;
     private String operator;
