@@ -1,25 +1,72 @@
 import core.*;
 import storage.StorageManager;
+import sql.SQLExecutor;
 
-import java.io.IOException;
-import java.time.LocalDate;
 import java.io.File;
+import java.io.IOException;
+import java.io.InvalidClassException;
+import java.time.LocalDate;
+import java.util.Scanner;
 
 public class Main {
 
     public static void main(String[] args) throws IOException, ClassNotFoundException {
         File file = new File("database.dat");
         Database database;
-        if (file.exists()){
-            database = StorageManager.load("database.dat");
+
+        if (file.exists()) {
+            try {
+                database = StorageManager.load(file.getPath());
+            } catch (InvalidClassException e) {
+                System.out.println("database.dat was saved in an old format. Delete it and run the program again.");
+                return;
+            }
             System.out.println("Database was loaded!");
-        }
-        else {
-            database = new Database();
+        } else {
+            database = createDefaultDatabase();
+            StorageManager.save(database, file.getPath());
             System.out.println("Database was created!");
         }
 
-        // клубы
+        SQLExecutor executor = new SQLExecutor(database);
+        Scanner scanner = new Scanner(System.in);
+
+        System.out.println("Enter SQL commands. Type exit to stop.");
+
+        while (true) {
+            System.out.print("> ");
+            if (!scanner.hasNextLine())
+                break;
+
+            String query = scanner.nextLine().trim();
+
+            if (query.equalsIgnoreCase("exit"))
+                break;
+
+            if (query.isEmpty())
+                continue;
+
+            try {
+                executor.execute(query);
+
+                if (!query.toUpperCase().startsWith("SELECT")) {
+                    StorageManager.save(database, file.getPath());
+                }
+            } catch (IllegalArgumentException e) {
+                System.out.println("Error: " + e.getMessage());
+            } catch (Exception e) {
+                System.out.println("Error: " + e);
+            }
+        }
+
+        scanner.close();
+        StorageManager.save(database, file.getPath());
+        System.out.println("Database saved!");
+    }
+
+    private static Database createDefaultDatabase() {
+        Database database = new Database();
+
         Table clubs = new Table("clubs");
         clubs.addColumn(new Column("id", DataType.INTEGER, true));
         clubs.addColumn(new Column("name", DataType.STRING, false));
@@ -42,9 +89,9 @@ public class Main {
         club2.setValue("created_at", LocalDate.of(2026, 11, 9));
         club2.setValue("active", true);
         clubs.addRow(club2);
+
         database.addTable(clubs);
 
-        // мероприятия
         Table events = new Table("events");
         events.addColumn(new Column("id", DataType.INTEGER, true));
         events.addColumn(new Column("department_id", DataType.INTEGER, false));
@@ -53,6 +100,10 @@ public class Main {
         events.addColumn(new Column("event_date", DataType.DATE, false));
         events.addColumn(new Column("active", DataType.BOOLEAN, false));
 
+        events.addForeignKey(new ForeignKey("department_id", "clubs", "id"));
+
+        database.addTable(events);
+
         Row event1 = new Row();
         event1.setValue("id", 1);
         event1.setValue("department_id", 1);
@@ -60,45 +111,17 @@ public class Main {
         event1.setValue("ticket_price", 1000.0);
         event1.setValue("event_date", LocalDate.of(2026, 11, 15));
         event1.setValue("active", true);
-        events.addRow(event1);
+        database.addRow("events", event1);
 
-        Row event3 = new Row();
-        event3.setValue("id", 3);
-        event3.setValue("department_id", 2);
-        event3.setValue("name", "Art Exhibition");
-        event3.setValue("ticket_price", 300.0);
-        event3.setValue("event_date", LocalDate.of(2026, 11, 25));
-        event3.setValue("active", true);
-        events.addRow(event3);
-        database.addTable(events);
+        Row event2 = new Row();
+        event2.setValue("id", 2);
+        event2.setValue("department_id", 2);
+        event2.setValue("name", "Art Exhibition");
+        event2.setValue("ticket_price", 300.0);
+        event2.setValue("event_date", LocalDate.of(2026, 11, 25));
+        event2.setValue("active", true);
+        database.addRow("events", event2);
 
-        StorageManager.save(database, file.getPath());
-
-        // итоговая таблица
-        Table res = database.getTable("clubs");
-        System.out.println("Table: " + res.getName());
-        for (Row row : res.getRow()) {
-            System.out.println(
-                    row.getValue("id") + " | " +
-                            row.getValue("name") + " | " +
-                            row.getValue("budget") + " | " +
-                            row.getValue("created_at") + " | " +
-                            row.getValue("active")
-            );
-        }
-
-        Table res1 = database.getTable("events");
-        System.out.println("\nTable: " + res1.getName());
-        for (Row row : res1.getRow()) {
-            System.out.println(
-                    row.getValue("id") + " | " +
-                            row.getValue("department_id") + " | " +
-                            row.getValue("name") + " | " +
-                            row.getValue("ticket_price") + " | " +
-                            row.getValue("event_date") + " | " +
-                            row.getValue("active")
-            );
-        }
-
+        return database;
     }
 }

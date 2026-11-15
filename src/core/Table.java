@@ -34,7 +34,10 @@ public class Table implements Serializable {
         return rows;
     }
 
+            // страховка на случай, если таблица загружена из старого файла
     public List<ForeignKey> getForeignKeys(){
+        if (foreignKeys == null)
+            foreignKeys = new ArrayList<>();
         return foreignKeys;
     }
 
@@ -47,6 +50,12 @@ public class Table implements Serializable {
     }
 
     public void isCorrectType(Column column, Object value){
+        if (value == null){
+            if (column.getKey())
+                throw new IllegalArgumentException("Primary key cannot be empty: " + column.getName());
+            return;
+        }
+
         boolean error = true;
         switch (column.getType()) {
             case DATE -> error = !(value instanceof LocalDate);
@@ -147,14 +156,14 @@ public class Table implements Serializable {
     public boolean updateByPrimaryKey(Object key, String column_name, Object new_value){
         Column prKeyColumn = null;
         Column targetColumn = null;
-    
+
         for (Column column : columns){
             if (column.getKey())
                 prKeyColumn = column;
             if (column.getName().equals(column_name))
-                targetColumn = column;  
-        }        
-        
+                targetColumn = column;
+        }
+
         if (prKeyColumn == null)
             throw new IllegalArgumentException("Primary key is not found");
         if (targetColumn == null)
@@ -167,12 +176,12 @@ public class Table implements Serializable {
                     for (Row othRow : rows){
                         if (othRow != row && Objects.equals(othRow.getValue(column_name), new_value)){
                             throw new IllegalArgumentException("Primary key already exists");
+                        }
                     }
                 }
+                row.setValue(column_name, new_value);
+                return true;
             }
-        }
-            row.setValue(column_name, new_value);
-            return true;
         }
         return false;
     }
